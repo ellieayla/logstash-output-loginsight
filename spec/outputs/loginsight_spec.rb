@@ -9,25 +9,7 @@ describe LogStash::Outputs::Loginsight do
   let(:epoch123) { "1970-01-01T00:00:00.123Z" }
   let(:port) { 9543 }
   let(:server) { subject.socket }
-  
   let(:sample_event) { LogStash::Event.new }
-  #let(:output) { LogStash::Outputs::Loginsight.new }
-
-  before do
-    #subject { LogStash::Outputs::Loginsight.new(:host => "localhost") }
-    #subject.register
-  end
-
-  #describe "receive message" do
-  #  subject { output.receive(sample_event) }
-
-  #  it "returns a string" do
-  #    # sample_event = LogShash::Event.new
-  #    # output = LogShash::Outputs::Loginsight.enew
-  #    # subject = output.receive(sample_event)
-  #    expect(subject).to eq(nil)
-  #  end
-  #end
 
   describe "safefield" do
     let(:safefield) { LogStash::Outputs::Loginsight.new("host" => "localhost").send(:safefield, proposed) }
@@ -60,8 +42,6 @@ describe LogStash::Outputs::Loginsight do
     end
     
     # TODO: Test for a fieldname starting with a number or underscore
-
-
   end
 
   describe "dotify" do
@@ -161,8 +141,6 @@ describe LogStash::Outputs::Loginsight do
         expect(cfapi).to eql({"events" => [{"timestamp"=>123, "text"=>"foo", "fields"=>[{"name"=>"bar_baz", "content"=>"awesome"}]}]})
       end
     end
-
-
   end  # complex cfapi with
 
 end
