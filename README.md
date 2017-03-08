@@ -1,6 +1,6 @@
-# Logstash Plugin
+# logstash-output-loginsight
 
-This is a plugin for [Logstash](https://github.com/elastic/logstash).
+This is a plugin for [Logstash](https://github.com/elastic/logstash), sending events to [VMware vRealize Log Insight](https://www.vmware.com/support/pubs/log-insight-pubs.html)
 
 It is fully free and fully open source. The license is Apache 2.0, meaning you are pretty much free to use it however you want in whatever way.
 
@@ -63,24 +63,20 @@ At this point any modifications to the plugin code will be applied to this local
 
 #### 2.2 Run in an installed Logstash
 
-You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
+You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory. Or you can build the gem and install it using:
 
 - Build your plugin gem
 ```sh
-gem build logstash-filter-awesome.gemspec
+gem build logstash-output-loginsight.gemspec
 ```
 - Install the plugin from the Logstash home
 ```sh
-bin/logstash-plugin install /your/local/plugin/logstash-filter-awesome.gem
+bin/logstash-plugin install /your/local/plugin/logstash-filter-loginsight.gem
 ```
 - Start Logstash and proceed to test the plugin
-
+```sh
+bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => "10.11.12.13" } }' --log.level=debug
+```
 ## Contributing
 
 All contributions are welcome: ideas, patches, documentation, bug reports, complaints, and even something you drew up on a napkin.
-
-Programming is not a required skill. Whatever you've seen about open source and maintainers or community members  saying "send patches or die" - you will not see that here.
-
-It is more important to the community that you are able to contribute.
-
-For more information about contributing, see the [CONTRIBUTING](https://github.com/elastic/logstash/blob/master/CONTRIBUTING.md) file.
