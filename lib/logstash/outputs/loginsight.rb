@@ -5,7 +5,7 @@ require "stud/buffer"
 require "manticore"
 #require "logstash/agent"
 
-# An loginsight output that does nothing.
+# An output plugin that sends events to a VMware vRealize Log Insight cluster.
 class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
   include Stud::Buffer
 
@@ -123,8 +123,5 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
       acc
     end
   end
-  
-  def nothing(param)
-    return "returnval"
-  end
+
 end # class LogStash::Outputs::Loginsight
