@@ -13,8 +13,9 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
 
   config :host, :validate => :string, :required => true
   config :port, :validate => :number, :default => 9000
-  config :proto, :validate => :string, :default => "http"
   config :uuid, :validate => :string, :default => nil
+  config :use_ssl, :validate => :boolean, :default => false
+  config :ca_file, :validate => :string, :default => nil
 
   config :flush_size, :validate => :number, :default => 100
   config :idle_flush_time, :validate => :number, :default => 1
@@ -34,14 +35,17 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
   def register
     @uuid ||= ( @id or 0 )  # Default UUID
     @logger.debug("Starting up agent #{@uuid}")
-    @url = "#{@proto}://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
-    
-    @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"})
 
-    #@client.use_ssl = true
-    #@client.verify_mode = OpenSSL::SSL::VERIFY_NONE
+    if @use_ssl
+      @url = "https://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
+      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"}, ssl: {"ca_file" => @ca_file } )
+    else
+      @url = "http://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
+      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} )
+    end
+
     @logger.debug("Client", :client => @client)
-    
+
     buffer_initialize(
       :max_items => @flush_size,
       :max_interval => @idle_flush_time,
