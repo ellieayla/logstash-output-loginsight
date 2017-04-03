@@ -12,9 +12,10 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
   config_name "loginsight"
 
   config :host, :validate => :string, :required => true
-  config :port, :validate => :number, :default => 9000
+  config :port, :validate => :number, :default => 9543
+  config :proto, :validate => :string, :default => "https"
   config :uuid, :validate => :string, :default => nil
-  config :use_ssl, :validate => :boolean, :default => false
+  config :verify, :validate => :boolean, :default => true
   config :ca_file, :validate => :string, :default => nil
 
   config :flush_size, :validate => :number, :default => 100
@@ -35,12 +36,19 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
   def register
     @uuid ||= ( @id or 0 )  # Default UUID
     @logger.debug("Starting up agent #{@uuid}")
+    @url = "#{@proto}://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
 
-    if @use_ssl
-      @url = "https://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
-      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"}, ssl: {"ca_file" => @ca_file } )
+    if  @proto == "https"
+      if  @verify == true
+        if  @ca_file != nil
+          @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: true , ca_file:  @ca_file } )
+        else
+          @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: true } )
+        end
+      else
+        @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"}, ssl:{ verify: false } )
+      end
     else
-      @url = "http://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
       @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} )
     end
 
