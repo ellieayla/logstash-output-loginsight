@@ -39,15 +39,7 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
     @url = "#{@proto}://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
 
     if  @proto == "https"
-      if  @verify == true
-        if  @ca_file != nil
-          @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: true , ca_file:  @ca_file } )
-        else
-          @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: true } )
-        end
-      else
-        @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"}, ssl:{ verify: false } )
-      end
+      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: @verify , ca_file:  @ca_file } )
     else
       @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} )
     end
