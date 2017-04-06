@@ -86,10 +86,17 @@ bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output
 bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => ["10.11.12.13"] verify => [true] ca_file => ["/Path to PEM/certificate.pem"] } }' --log.level=debug
 ```
 - How to download the certificate chain .pem file
+
+- In case of a certificate authority signed certificate
 ```sh
 openssl s_client -connect 10.11.12.13:9543 -verify 1
 ```
-- copy the content inside -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- (both sections inclusive) and save it in a .pem file
+- copy the contents of all the sections inside -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- (both sections inclusive) and save it in certificate.pem file
+
+- In case of a self signed certificate
+```sh
+openssl s_client -showcerts -connect 10.11.12.13:9543 < /dev/null | openssl x509 -outform PEM > certificate.pem
+```
 
 ## Contributing
 
