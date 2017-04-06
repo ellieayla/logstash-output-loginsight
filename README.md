@@ -73,10 +73,31 @@ gem build logstash-output-loginsight.gemspec
 ```sh
 bin/logstash-plugin install /your/local/plugin/logstash-filter-loginsight.gem
 ```
-- Start Logstash and proceed to test the plugin
+- Start Logstash and proceed to test the plugin with http connection to loginsight
 ```sh
-bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => "10.11.12.13" } }' --log.level=debug
+bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => ["10.11.12.13"] proto => ["http"] port => [9000] } }' --log.level=debug
 ```
+- Start Logstash and proceed to test the plugin with https connection to loginsight using default Certificate Authority
+```sh
+bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => ["10.11.12.13"] verify => [true] } }' --log.level=debug
+```
+- Start Logstash and proceed to test the plugin with https connection to loginsight using path to certificate chain in .pem file
+```sh
+bin/logstash -e 'input { stdin { add_field => { "fieldname" => "10" } } } output { loginsight { host => ["10.11.12.13"] verify => [true] ca_file => ["/Path to PEM/certificate.pem"] } }' --log.level=debug
+```
+- How to download the certificate chain .pem file
+
+- In case of a certificate authority signed certificate
+```sh
+openssl s_client -connect 10.11.12.13:9543 -verify 1
+```
+- copy the contents of all the sections inside -----BEGIN CERTIFICATE----- and -----END CERTIFICATE----- (both sections inclusive) and save it in certificate.pem file
+
+- In case of a self signed certificate
+```sh
+openssl s_client -showcerts -connect 10.11.12.13:9543 < /dev/null | openssl x509 -outform PEM > certificate.pem
+```
+
 ## Contributing
 
 All contributions are welcome: ideas, patches, documentation, bug reports, complaints, and even something you drew up on a napkin.
