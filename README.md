@@ -28,15 +28,14 @@ loginsight {
 }
 ```
 
-| option  | default | notes |
-| --- | --- |
+| option | default | notes |
+| --- | --- | --- |
 | `host`  |       | required |
 | `port`  | `9543`  | ingestion api port 9000 uses http |
 | `proto` | `https` | `https` or `http` |
 | `uuid`  | `id` or `0` | unique identifier for client |
 | `verify` | `True` | verify certificate chain and hostname for SSL connections |
 | `ca_file` |       | alternate certificate chain to trust |
-
 
 ## Self-signed Certificate
 
