@@ -6,7 +6,7 @@ It is fully free and fully open source. The license is Apache 2.0, meaning you a
 
 ## Installation from rubygems
 
-[http://rubygems.org/gems/logstash-output-loginsight] is hosted on rubygems.org. [Download and install the latest gem](https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html) in your Logstash deployment:
+[logstash-output-loginsight](http://rubygems.org/gems/logstash-output-loginsight) is hosted on rubygems.org. [Download and install the latest gem](https://www.elastic.co/guide/en/logstash/current/working-with-plugins.html) in your Logstash deployment:
 
 ```sh
 bin/logstash-plugin install logstash-output-loginsight
