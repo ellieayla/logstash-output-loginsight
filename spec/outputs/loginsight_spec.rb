@@ -1,4 +1,7 @@
 # encoding: utf-8
+# Copyright © 2017 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 require "logstash/devutils/rspec/spec_helper"
 require "logstash/outputs/loginsight"
 require "logstash/codecs/plain"

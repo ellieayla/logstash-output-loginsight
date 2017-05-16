@@ -1,11 +1,18 @@
 # encoding: utf-8
+# Copyright © 2017 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: Apache-2.0
+
 require "logstash/outputs/base"
 require "logstash/namespace"
 require "stud/buffer"
 require "manticore"
-#require "logstash/agent"
 
-# An output plugin that sends events to a VMware vRealize Log Insight cluster.
+# This output plugin is used to send Events to a VMware vRealize Log Insight cluster,
+# preserving existing fields on Events as key=value fields. Timestamps are transmitted
+# as milliseconds-since-epoch UTC.
+
+# output { loginsight { host => ["10.11.12.13"] } }
+
 class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
   include Stud::Buffer
 
