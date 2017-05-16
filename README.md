@@ -30,7 +30,7 @@ loginsight {
 
 | option | default | notes |
 | --- | --- | --- |
-| `host`  |       | required |
+| `host`  |       | required remote sserver to connect to |
 | `port`  | `9543`  | ingestion api port 9000 uses http |
 | `proto` | `https` | `https` or `http` |
 | `uuid`  | `id` or `0` | unique identifier for client |
@@ -39,7 +39,7 @@ loginsight {
 
 ## Self-signed Certificate
 
-Verification of the remote certificate is done against If you're using a self-signed certificate, you can retrieve a copy of the certificate and then configure the client to trust it. The certificate's common name must still match the `host` option.
+Verification of the remote certificate is done against the platform's certificate authority. If you're using a self-signed certificate, you can retrieve a copy of the certificate and then configure the client to trust it. The certificate's common name must still match the `host` option.
 
 Connect to your Log Insight server and retrieve the certificate, writing it out to a PEM-formatted file. This method works for single-certificate chains, as in the self-signed case.
 ```sh
@@ -64,9 +64,6 @@ Logstash provides infrastructure to automatically generate documentation for thi
 ## Need Help?
 
 Need help? Try #logstash on freenode IRC or the https://discuss.elastic.co/c/logstash discussion forum.
-
-
-
 
 ## Developing
 
@@ -100,7 +97,7 @@ bundle exec rspec
 
 - Edit Logstash `Gemfile` and add the local plugin path, for example:
 ```ruby
-gem "logstash-filter-awesome", :path => "/your/local/logstash-output-loginsight"
+gem "logstash-output-loginsight", :path => "/your/local/logstash-output-loginsight"
 ```
 - Install plugin
 ```sh
