@@ -2,10 +2,7 @@
 # Copyright © 2017 VMware, Inc. All Rights Reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-require "logstash/outputs/base"
-require "logstash/namespace"
-require "stud/buffer"
-require "manticore"
+require "logstash/outputs/http"
 
 # This output plugin is used to send Events to a VMware vRealize Log Insight cluster,
 # preserving existing fields on Events as key=value fields. Timestamps are transmitted
@@ -13,69 +10,72 @@ require "manticore"
 
 # output { loginsight { host => ["10.11.12.13"] } }
 
-class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
-  include Stud::Buffer
+class LogStash::Outputs::Loginsight < LogStash::Outputs::Http
 
   config_name "loginsight"
 
+
   config :host, :validate => :string, :required => true
   config :port, :validate => :number, :default => 9543
-  config :proto, :validate => :string, :default => "https"
+  config :proto, :validate => :string, :default => 'https'
   config :uuid, :validate => :string, :default => nil
-  config :verify, :validate => :boolean, :default => true
-  config :ca_file, :validate => :string, :default => nil
 
-  config :flush_size, :validate => :number, :default => 100
-  config :idle_flush_time, :validate => :number, :default => 1
+  config :verify, :validate => :boolean, :default => true, :obsolete => 'Always verify HTTPS certificates. For self-signed certs, use openssl s_client to save server\'s certificate to a PEM-formatted file. Then pass the filename in "cacert" option.'
+  config :ca_file, :validate => :string, :default => nil, :deprecated => 'Use "cacert" instead, specify path to PEM-formatted file.'
+
+  config :flush_size, :validate => :number, :default => 1, :obsolete => 'Has no effect. Events are sent without delay.'
+  config :idle_flush_time, :validate => :number, :default => 1, :obsolete => 'Has no effect. Events are sent without delay.'
 
   # Fields that will be renamed or dropped.
   config :adjusted_fields, :validate => :hash, :default => {
-    "hostname" => "host",  # unlikely to be present, preserve anyway
-    "host" => "hostname",  # desired change
-    "@version" => nil,  # drop
-    "@timestamp" => nil,  # drop, already mapped to "timestamp" in event_hash
-    "message" => nil,  # drop, already mapped to "text" in event_hash
-    "timestamp" => "timestamp_",  # Log Insight will refuse events with a "timestamp" field.
+      'hostname' => 'host',  # unlikely to be present, preserve anyway
+      'host' => 'hostname',  # desired change
+      '@version' => nil,  # drop
+      '@timestamp' => nil,  # drop, already mapped to "timestamp" in event_hash
+      'message' => nil,  # drop, already mapped to "text" in event_hash
+      'timestamp' => 'timestamp_',  # Log Insight will refuse events with a "timestamp" field.
   }
 
-  concurrency :single
+  config :url, :validate => :string, :default => nil, :deprecated => 'Use "host", "port", "proto" and "uuid" instead.'
+
+
+  # Remove configuration options from superclass that don't make sense for this plugin.
+  @config.delete('http_method')  # CFAPI is post-only
+  @config.delete('format')
+  @config.delete('message')
 
   public
   def register
-    @uuid ||= ( @id or 0 )  # Default UUID
-    @logger.debug("Starting up agent #{@uuid}")
-    @url = "#{@proto}://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
 
-    if  @proto == "https"
-      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} , ssl:{ verify: @verify , ca_file:  @ca_file } )
-    else
-      @client = Manticore::Client.new(headers: {"Content-Type" => "application/json"} )
+    if @cacert.nil?
+      @cacert = @ca_file
     end
 
-    @logger.debug("Client", :client => @client)
+    # Hard-wired options
+    @http_method = "post"
+    @format = "json"
+    @content_type = "application/json"
 
-    buffer_initialize(
-      :max_items => @flush_size,
-      :max_interval => @idle_flush_time,
-      :logger => @logger
-    )
+    @uuid ||= ( @id or 0 )  # Default UUID
+    @logger.debug("Starting up agent #{@uuid}")
+
+    if @url.nil?
+      @url = "#{@proto}://#{@host}:#{@port}/api/v1/events/ingest/#{@uuid}"
+    end
+
+
+    @logger.debug("Client", :client => @client)
+    super
+
   end # def register
 
-  public
-  def receive(event)
-    @logger.debug("Event received", :event => event)
-    buffer_receive(event)
-  end # def receive
-
-  public
-  def flush(events, database, teardown = false)
-    @logger.debug? and @logger.debug("Flushing #{events.size} events - Teardown? #{teardown}")
-    
-    post(cfapi(events))
+  # override function from parent class, Http, removing other format modes
+  def event_body(event)
+    LogStash::Json.dump(cfapi([event]))
   end
 
   def timestamp_in_milliseconds(timestamp)
-    return (timestamp.to_f * 1000).to_i
+    (timestamp.to_f * 1000).to_i
   end
 
   # Frame the events in the hash-array structure required by Log Insight
@@ -86,38 +86,26 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
     events.each do |event|
       # Create an outbound event; this can be serialized to json and sent
       event_hash = {
-        "timestamp" => timestamp_in_milliseconds(event.get("@timestamp")),
-        "text" => (event.get("message") or ""),
+        'timestamp' => timestamp_in_milliseconds(event.get('@timestamp')),
+        'text' => (event.get('message') or ''),
       }
 
       # Map fields from the event to the desired form
-      event_hash["fields"] = merge_hash(event.to_hash)
+      event_hash['fields'] = merge_hash(event.to_hash)
         .reject { |key,value| @adjusted_fields.has_key?(key) and @adjusted_fields[key] == nil }  # drop banned fields
         .map {|k,v| [ @adjusted_fields.has_key?(k) ? @adjusted_fields[k] : k,v] }  # rename fields
-        .map {|k,v| { "name" => (k), "content" => v } }  # Convert a hashmap {k=>v, k2=>v2} to a list [{name=>k, content=>v}, {name=>k2, content=>v2}]
+        .map {|k,v| { 'name' => (safefield(k)), 'content' => v } }  # Convert a hashmap {k=>v, k2=>v2} to a list [{name=>k, content=>v}, {name=>k2, content=>v2}]
 
         messages.push(event_hash)
     end # events.each do
 
-    return { "events" => messages }  # Framing required by CFAPI.
-  end # def flush
+    { 'events' => messages }  # Framing required by CFAPI.
+  end # def cfapi
 
   # Return a copy of the fieldname with non-alphanumeric characters removed.
   def safefield(fieldname)
-    fieldname.gsub(/[^a-zA-Z0-9\_]/, '')  # TODO: Correct pattern for a valid fieldname. Must deny leading numbers.
+    fieldname.gsub(/[^a-zA-Z0-9_]/, '')  # TODO: Correct pattern for a valid fieldname. Must deny leading numbers.
   end
-
-  def post(messages)
-    @logger.debug("post(body)", :messages => messages)
-    
-    body = LogStash::Json.dump(messages)
-    @logger.debug("json-dump", :body => body)
-    
-    @logger.debug("attempting connection", :url => @url)
-    response = @client.post!(@url, :body => body)
-    @logger.debug("result", :response => response)
-
-  end # def post
 
   # Recursively merge a nested dictionary into a flat dictionary with dotted keys.
   def merge_hash(hash, prelude = nil)

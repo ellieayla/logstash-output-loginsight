@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name          = 'logstash-output-loginsight'
-  s.version       = '0.2.2'
+  s.version       = '0.3.0'
   s.licenses      = ['Apache-2.0']
   s.summary       = 'Output events to a Log Insight server. This uses the Ingestion API protocol.'
   s.description   = 'This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install logstash-output-loginsight. This gem is not a stand-alone program.'
@@ -25,5 +25,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency "logstash-devutils", ">= 0"#, ">= 1.3.1"
   s.add_development_dependency "rspec", ">= 0"
   s.add_development_dependency "logstash-codec-plain", ">= 0"
+  s.add_development_dependency "logstash-output-http", ">= 0"
 
 end
