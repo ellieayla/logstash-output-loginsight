@@ -144,6 +144,14 @@ describe LogStash::Outputs::Loginsight do
         expect(cfapi).to eql({"events" => [{"timestamp"=>123, "text"=>"foo", "fields"=>[{"name"=>"bar_baz", "content"=>"awesome"}]}]})
       end
     end
+
+    context "a timestamp field" do
+      let(:events) { [LogStash::Event.new("@timestamp"=>epoch123, "@version"=>1, "message"=>"foo", "timestamp"=>"abc")] }
+      it "should have a timestamp_ field" do
+        expect(cfapi).to eql({"events" => [{"timestamp"=>123, "text"=>"foo", "fields"=>[{"name"=>"timestamp_", "content"=>"abc"}]}]})
+      end
+    end
+
   end  # complex cfapi with
 
 end

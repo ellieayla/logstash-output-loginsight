@@ -35,6 +35,7 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Base
     "@version" => nil,  # drop
     "@timestamp" => nil,  # drop, already mapped to "timestamp" in event_hash
     "message" => nil,  # drop, already mapped to "text" in event_hash
+    "timestamp" => "timestamp_",  # Log Insight will refuse events with a "timestamp" field.
   }
 
   concurrency :single
