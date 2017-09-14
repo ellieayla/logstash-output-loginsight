@@ -30,12 +30,12 @@ loginsight {
 
 | option | default | notes |
 | --- | --- | --- |
-| `host`  |       | required remote sserver to connect to |
+| `host`  |       | required remote server FQDN or IP |
 | `port`  | `9543`  | ingestion api port 9000 uses http |
 | `proto` | `https` | `https` or `http` |
 | `uuid`  | `id` or `0` | unique identifier for client |
-| `verify` | `True` | verify certificate chain and hostname for SSL connections |
-| `ca_file` |       | alternate certificate chain to trust |
+| `ssl_certificate_validation` | `True` | verify certificate chain and hostname for SSL connections |
+| `cacert` |       | alternate certificate chain to trust, PEM-formatted |
 
 ## Self-signed Certificate
 

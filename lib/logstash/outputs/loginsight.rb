@@ -20,7 +20,7 @@ class LogStash::Outputs::Loginsight < LogStash::Outputs::Http
   config :proto, :validate => :string, :default => 'https'
   config :uuid, :validate => :string, :default => nil
 
-  config :verify, :validate => :boolean, :default => nil, :deprecated => 'Deprecated alias for "ssl_certificate_validation". Insecure. For self-signed certs, use openssl s_client to save server\'s certificate to a PEM-formatted file. Then pass the filename in "cacert" option.'
+  config :verify, :default => true, :deprecated => 'Deprecated alias for "ssl_certificate_validation". Insecure. For self-signed certs, use openssl s_client to save server\'s certificate to a PEM-formatted file. Then pass the filename in "cacert" option.'
   config :ca_file, :validate => :string, :default => nil, :deprecated => 'Deprecated alias for "cacert", specify path to PEM-formatted file.'
 
   config :flush_size, :validate => :number, :default => 1, :obsolete => 'Has no effect. Events are sent without delay.'
